@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Watcher File</title>
+    <style>
+        body{
+            background-color: bisque;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        h2{
+            text-align: center;
+            margin-bottom: 20px;
+            color: #444;
+            font-size: 45px;
+        }
+        #log{
+            background-color: rgb(38, 37, 37);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <h2>Real Time Log Updates: </h2>
+    <div id="log"></div>
+
+    <script>
+        let buffer = [];
+        async function getInitalLogs(){
+            const res = await fetch("/log");
+            // console.log(res);
+            const data = await res.json();
+            buffer = data.logs.slice(-10);
+            // console.log(data);
+            
+            render();
+        }
+
+        function startWebServer(){
+            const ws = new WebSocket("ws://localhost:3000");
+            ws.onmessage = event => {
+                console.log("paired");
+                const data = JSON.parse(event.data);
+                buffer.push(...data.logs);
+                // if(buffer.length > 10){
+                //     buffer = buffer.slice(-10);
+                // };
+                render();
+            };
+        }
+
+
+        async function render(){
+            const logDiv = document.getElementById("log");
+            logDiv.innerText = buffer.join("\n");
+        }
+
+        getInitalLogs();
+        startWebServer();
+
+    </script>
+</body>
+</html>
